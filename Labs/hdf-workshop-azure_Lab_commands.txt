@@ -1,0 +1,74 @@
+sudo su - 
+
+ssh root@sandbox -p 2222
+
+ambari-admin-password-reset
+
+wget http://public-repo-1.hortonworks.com/HDF/centos6/2.x/updates/2.1.2.0/HDF-2.1.2.0-centos6-tars-tarball.tar.gz
+
+tar zxvf HDF-2.1.2.0-centos6-tars-tarball.tar.gz
+
+cp ./HDF/centos6/tars/nifi/nifi-1.1.0.2.1.2.0-10-bin.tar.gz /usr/
+
+cp ./HDF/centos6/tars/minifi/minifi-1.0.2.1.2.0-10-bin.tar.gz /usr/
+
+cp ./HDF/centos6/tars/minifi/minifi-toolkit-1.0.2.1.2.0-10-bin.tar.gz /usr/
+
+cd /usr/
+
+tar zxvf nifi-1.1.0.2.1.2.0-10-bin.tar.gz
+
+tar zxvf minifi-1.0.2.1.2.0-10-bin.tar.gz
+
+tar zxvf minifi-toolkit-1.0.2.1.2.0-10-bin.tar.gz
+
+cd nifi-1.1.0.2.1.2.0-10
+
+bin/nifi.sh install
+
+vi conf/nifi.properties
+
+service nifi start
+
+([{])([\S\s]+)([}])
+
+{
+"event_name": "${event.name}",
+"event_url": "${event.url}",
+"venue" : {
+"lat": "${venue.lat}",
+"lon": "${venue.lon}",
+"name": "${venue.name}"
+},
+"group" : {
+"group_city" : "${group.city}",
+"group_country" : "${group.country}",
+"group_name" : "${group.name}",
+"group_state" : "${group.state}",
+$2
+}
+}
+
+
+nifi.remote.input.host=localhost
+nifi.remote.input.socket.port=10001
+
+# service nifi restart
+
+OUTPUT="$(grep Template `ls -t /usr/nifi-1.1.0.2.1.2.0-10/logs/nifi-app* | head -1` | tail -1 | grep -o -P '(?<=id=).*?(?=\])')"
+	
+wget http://localhost:9090/nifi-api/templates/`echo "${OUTPUT}"`/download -O MiNiFi_Flow.xml
+
+/usr/minifi-toolkit-1.0.2.1.2.0-10/bin/config.sh transform MiNiFi_Flow.xml config.yml
+
+mv config.yml /usr/minifi-1.0.2.1.2.0-10/conf/
+
+cd /usr/minifi-1.0.2.1.2.0-10/
+bin/minifi.sh start
+
+
+
+
+
+
+
